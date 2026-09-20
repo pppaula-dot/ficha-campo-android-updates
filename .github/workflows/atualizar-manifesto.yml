@@ -1,0 +1,107 @@
+name: Atualizar manifesto Android
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar-manifesto:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Baixar APK da Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${GITHUB_REF_NAME}"             --pattern "ficha-campo-acompanhamento.apk"             --output "ficha-campo-acompanhamento.apk"
+
+      - name: Localizar aapt
+        id: aapt
+        shell: bash
+        run: |
+          AAPT="$(find "${ANDROID_HOME}/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -n 1)"
+          if [ -z "${AAPT}" ]; then
+            echo "aapt não encontrado no runner."
+            exit 1
+          fi
+          echo "path=${AAPT}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validar APK e ler versão
+        id: apk
+        shell: bash
+        run: |
+          BADGING="$("${{ steps.aapt.outputs.path }}" dump badging ficha-campo-acompanhamento.apk | head -n 1)"
+
+          PACKAGE_NAME="$(printf '%s\n' "${BADGING}" | sed -n "s/.*package: name='\([^']*\)'.*/\1/p")"
+          VERSION_CODE="$(printf '%s\n' "${BADGING}" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")"
+          VERSION_NAME="$(printf '%s\n' "${BADGING}" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")"
+
+          if [ "${PACKAGE_NAME}" != "br.com.oam.fichacampolavra.v1" ]; then
+            echo "Pacote incorreto: ${PACKAGE_NAME}"
+            exit 1
+          fi
+
+          if [ -z "${VERSION_CODE}" ] || [ -z "${VERSION_NAME}" ]; then
+            echo "Não foi possível identificar versionCode/versionName."
+            exit 1
+          fi
+
+          SHA256="$(sha256sum ficha-campo-acompanhamento.apk | awk '{print $1}')"
+
+          echo "version_code=${VERSION_CODE}" >> "${GITHUB_OUTPUT}"
+          echo "version_name=${VERSION_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "sha256=${SHA256}" >> "${GITHUB_OUTPUT}"
+
+      - name: Ler notas da Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          NOTES="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}" --jq '.body // ""' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
+          echo "notes=${NOTES}" >> "${GITHUB_OUTPUT}"
+
+      - name: Gerar atualizacao.json
+        shell: bash
+        env:
+          VERSION_CODE: ${{ steps.apk.outputs.version_code }}
+          VERSION_NAME: ${{ steps.apk.outputs.version_name }}
+          SHA256: ${{ steps.apk.outputs.sha256 }}
+          NOTES: ${{ steps.release.outputs.notes }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+
+          data = {
+              "versionCode": int(os.environ["VERSION_CODE"]),
+              "versionName": os.environ["VERSION_NAME"],
+              "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/latest/download/ficha-campo-acompanhamento.apk",
+              "sha256": os.environ["SHA256"],
+              "notes": os.environ["NOTES"].strip(),
+          }
+
+          with open("atualizacao.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+              f.write("\n")
+          PY
+
+      - name: Publicar manifesto atualizado
+        shell: bash
+        run: |
+          if git diff --quiet -- atualizacao.json; then
+            echo "atualizacao.json já está correto."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add atualizacao.json
+          git commit -m "Atualiza manifesto para v${{ steps.apk.outputs.version_name }}"
+          git push
