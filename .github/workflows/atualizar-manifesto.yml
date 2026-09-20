@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   atualizar-manifesto:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
 
     steps:
@@ -154,6 +155,7 @@ jobs:
           VERSION_NAME: ${{ steps.apk.outputs.version_name }}
           SHA256: ${{ steps.apk.outputs.sha256 }}
           NOTES: ${{ steps.release.outputs.notes }}
+          TAG: ${{ steps.rel.outputs.tag }}
         run: |
           python3 - <<'PY'
           import json
@@ -162,7 +164,7 @@ jobs:
           data = {
               "versionCode": int(os.environ["VERSION_CODE"]),
               "versionName": os.environ["VERSION_NAME"],
-              "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/latest/download/ficha-campo-acompanhamento.apk",
+              "apkUrl": f"https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/{os.environ['TAG']}/ficha-campo-acompanhamento.apk",
               "sha256": os.environ["SHA256"],
               "notes": os.environ["NOTES"].strip(),
           }
