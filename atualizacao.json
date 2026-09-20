@@ -1,7 +1,7 @@
 {
-  "versionCode": 22,
-  "versionName": "8.2",
+  "versionCode": 23,
+  "versionName": "8.3",
   "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/latest/download/ficha-campo-acompanhamento.apk",
-  "sha256": "994ee7494b4fbaaa5d1a2ba6c7c491296c5cdd6b9e0a6888a052c332cb400238",
-  "notes": "Teste da atualização assistida do Ficha Campo - Acompanhamento."
+  "sha256": "7eb5381495e3edaac11258e68d8498bed4d4ec095e2dceed9f1ec6f132a9bb54",
+  "notes": "Inclusão de referências curtas abaixo dos números dos itens da ficha."
 }
