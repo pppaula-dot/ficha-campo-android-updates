@@ -92,7 +92,7 @@ jobs:
           printf '%s\n' "${CERT_OUTPUT}"
 
           EXPECTED_CERT_SHA256="8ad3fc3653b5669dcead7d9ffe062cbabcfc1998aaa389478cb43edc7980bbf3"
-          ACTUAL_CERT_SHA256="$(printf '%s\n' "${CERT_OUTPUT}" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -n 1 | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
+          ACTUAL_CERT_SHA256="$(printf '%s\\n' "${CERT_OUTPUT}" | sed -n 's/^.*certificate SHA-256 digest: //p' | head -n 1 | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
 
           if [ -z "${ACTUAL_CERT_SHA256}" ]; then
             echo "Não foi possível identificar o certificado do APK."
