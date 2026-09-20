@@ -3,6 +3,12 @@ name: Atualizar manifesto Android
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag da Release a validar (ex.: v8.3)"
+        required: true
+        default: "v8.3"
 
 permissions:
   contents: write
@@ -15,28 +21,46 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
+      - name: Definir Release
+        id: rel
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.release_tag }}"
+          else
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          if [ -z "${TAG}" ]; then
+            echo "Tag da Release não identificada."
+            exit 1
+          fi
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+
       - name: Baixar APK da Release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          gh release download "${GITHUB_REF_NAME}"             --pattern "ficha-campo-acompanhamento.apk"             --output "ficha-campo-acompanhamento.apk"
+          gh release download "${{ steps.rel.outputs.tag }}" --pattern "ficha-campo-acompanhamento.apk" --output "ficha-campo-acompanhamento.apk"
 
-      - name: Localizar aapt
-        id: aapt
+      - name: Localizar ferramentas Android
+        id: android
         shell: bash
         run: |
           AAPT="$(find "${ANDROID_HOME}/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -n 1)"
+          APKSIGNER="$(find "${ANDROID_HOME}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
           if [ -z "${AAPT}" ]; then
             echo "aapt não encontrado no runner."
             exit 1
           fi
-          echo "path=${AAPT}" >> "${GITHUB_OUTPUT}"
+          echo "aapt=${AAPT}" >> "${GITHUB_OUTPUT}"
+          echo "apksigner=${APKSIGNER}" >> "${GITHUB_OUTPUT}"
 
       - name: Validar APK e ler versão
         id: apk
         shell: bash
         run: |
-          BADGING="$("${{ steps.aapt.outputs.path }}" dump badging ficha-campo-acompanhamento.apk | head -n 1)"
+          BADGING="$("${{ steps.android.outputs.aapt }}" dump badging ficha-campo-acompanhamento.apk | head -n 1)"
 
           PACKAGE_NAME="$(printf '%s\n' "${BADGING}" | sed -n "s/.*package: name='\([^']*\)'.*/\1/p")"
           VERSION_CODE="$(printf '%s\n' "${BADGING}" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")"
@@ -58,16 +82,53 @@ jobs:
           echo "version_name=${VERSION_NAME}" >> "${GITHUB_OUTPUT}"
           echo "sha256=${SHA256}" >> "${GITHUB_OUTPUT}"
 
+          if [ -n "${{ steps.android.outputs.apksigner }}" ]; then
+            "${{ steps.android.outputs.apksigner }}" verify --print-certs ficha-campo-acompanhamento.apk
+          fi
+
+      - name: Conferir progressão de versão
+        id: guard
+        shell: bash
+        env:
+          NEW_VERSION_CODE: ${{ steps.apk.outputs.version_code }}
+        run: |
+          CURRENT_VERSION_CODE="$(python3 - <<'PY'
+          import json
+          with open("atualizacao.json", encoding="utf-8") as f:
+              print(json.load(f)["versionCode"])
+          PY
+          )"
+
+          echo "Versão atual no manifesto: ${CURRENT_VERSION_CODE}"
+          echo "Versão do APK: ${NEW_VERSION_CODE}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${NEW_VERSION_CODE}" -lt "${CURRENT_VERSION_CODE}" ]; then
+              echo "Teste recusado: APK é mais antigo que o manifesto."
+              exit 1
+            fi
+          else
+            if [ "${NEW_VERSION_CODE}" -le "${CURRENT_VERSION_CODE}" ]; then
+              echo "Release recusada: versionCode deve ser maior que o atual."
+              exit 1
+            fi
+          fi
+
       - name: Ler notas da Release
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          NOTES="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}" --jq '.body // ""' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
-          echo "notes=${NOTES}" >> "${GITHUB_OUTPUT}"
+          NOTES="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${{ steps.rel.outputs.tag }}" --jq '.body // ""' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
+          {
+            echo "notes<<EOF"
+            echo "${NOTES}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Gerar atualizacao.json
+        if: github.event_name == 'release'
         shell: bash
         env:
           VERSION_CODE: ${{ steps.apk.outputs.version_code }}
@@ -93,6 +154,7 @@ jobs:
           PY
 
       - name: Publicar manifesto atualizado
+        if: github.event_name == 'release'
         shell: bash
         run: |
           if git diff --quiet -- atualizacao.json; then
@@ -105,3 +167,12 @@ jobs:
           git add atualizacao.json
           git commit -m "Atualiza manifesto para v${{ steps.apk.outputs.version_name }}"
           git push
+
+      - name: Resultado do teste manual
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          echo "Validação concluída sem publicar atualização."
+          echo "versionCode=${{ steps.apk.outputs.version_code }}"
+          echo "versionName=${{ steps.apk.outputs.version_name }}"
+          echo "sha256=${{ steps.apk.outputs.sha256 }}"
