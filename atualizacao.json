@@ -1,7 +1,7 @@
 {
-  "versionCode": 23,
-  "versionName": "8.3",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v8.3/ficha-campo-acompanhamento.apk",
-  "sha256": "7eb5381495e3edaac11258e68d8498bed4d4ec095e2dceed9f1ec6f132a9bb54",
-  "notes": "Inclusão de referências curtas abaixo dos números dos itens da ficha."
+  "versionCode": 24,
+  "versionName": "9.0",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v9.0/ficha-campo-acompanhamento.apk",
+  "sha256": "40b26d4ea783e949b0a013d2bcc6c525314635d0867b601240e5c97ce02b85a3",
+  "notes": "V9.0: correção da orientação das fotografias, preservação dos dados existentes e atualização assistida."
 }
