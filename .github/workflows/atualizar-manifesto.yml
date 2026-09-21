@@ -44,7 +44,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release download "${{ steps.rel.outputs.tag }}" --pattern "ficha-campo-acompanhamento.apk" --output "ficha-campo-acompanhamento.apk"
+          TAG="${{ steps.rel.outputs.tag }}"
+          ASSET_NAME="ficha-campo-acompanhamento.apk"
+          if [[ "${TAG}" =~ ^v[0-9]+$ ]]; then
+            ASSET_NAME="${TAG}_instalador_acompanhamento.apk"
+          fi
+          echo "APK_ASSET_NAME=${ASSET_NAME}" >> "${GITHUB_ENV}"
+          gh release download "${TAG}" --pattern "${ASSET_NAME}" --output "ficha-campo-acompanhamento.apk"
 
       - name: Localizar ferramentas Android
         id: android
@@ -166,7 +172,7 @@ jobs:
           data = {
               "versionCode": int(os.environ["VERSION_CODE"]),
               "versionName": os.environ["VERSION_NAME"],
-              "apkUrl": f"https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/{os.environ['TAG']}/ficha-campo-acompanhamento.apk",
+              "apkUrl": f"https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/{os.environ['TAG']}/{os.environ['APK_ASSET_NAME']}",
               "sha256": os.environ["SHA256"],
               "notes": os.environ["NOTES"].strip(),
           }
