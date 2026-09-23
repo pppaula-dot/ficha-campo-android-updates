@@ -1,6 +1,6 @@
 {
-  "version": "3.1.0",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_3.1.0.zip",
-  "sha256": "668303e732f405eeb0a991ad8cfa40a47362898888e02428d8e0b7598ea950f0",
-  "notes": "Localizar agendamentos; adiar 10/30 min, 1 hora ou tempo escolhido; reagendar para amanhã ou outra data/hora; pausar e retomar avisos; sair completamente sem desligar o PC; versão visível e preservação automática dos dados."
+  "version": "3.1.1",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip",
+  "sha256": "6de150bdba6614129e4c0c115cc9e8eeac157caa10b09a5851158dd45d46078c",
+  "notes": "Correção do erro do .NET na verificação automática inicial e reforço do mecanismo de aplicação da atualização. Mantém as melhorias da v3.1.0 e preserva os dados."
 }
