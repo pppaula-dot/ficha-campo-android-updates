@@ -1,0 +1,92 @@
+name: Build Agenda v3.1.1
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-agenda-v311.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build corrected update
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agenda311
+          mkdir -p /tmp/agenda311
+          unzip -q agenda-personalizada/Agenda_Personalizada_update_3.1.0.zip -d /tmp/agenda311
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('/tmp/agenda311/Agenda_Personalizada.ps1')
+          s = p.read_text(encoding='utf-8-sig')
+          s = s.replace("$AppVersion = '3.1.0'", "$AppVersion = '3.1.1'")
+          old = """    $checkTimer = New-Object System.Windows.Forms.Timer
+              $checkTimer.Interval = 2500
+              $checkTimer.Add_Tick({ $checkTimer.Stop(); $checkTimer.Dispose(); Check-ForUpdates $true })
+              $checkTimer.Start()
+          """
+          new = """    $script:InitialUpdateTimer = New-Object System.Windows.Forms.Timer
+              $script:InitialUpdateTimer.Interval = 2500
+              $script:InitialUpdateTimer.Add_Tick({
+                  try {
+                      if ($null -ne $script:InitialUpdateTimer) {
+                          $script:InitialUpdateTimer.Stop()
+                          $script:InitialUpdateTimer.Dispose()
+                          $script:InitialUpdateTimer = $null
+                      }
+                      Check-ForUpdates $true
+                  } catch {
+                      # A verificação automática nunca deve interromper a agenda.
+                  }
+              })
+              $script:InitialUpdateTimer.Start()
+          """
+          if old not in s:
+              raise SystemExit('initial timer block not found')
+          s = s.replace(old, new)
+          old2 = "        Start-Process -FilePath $updater -WindowStyle Hidden\n"
+          new2 = "        Start-Process -FilePath $env:ComSpec -ArgumentList @('/c', ('\"' + $updater + '\"')) -WindowStyle Hidden\n"
+          if old2 not in s:
+              raise SystemExit('updater launch block not found')
+          s = s.replace(old2, new2)
+          old3 = """    try { $updateTimer.Stop(); $updateTimer.Dispose() } catch {}
+              try { $script:InstanceMutex.ReleaseMutex(); $script:InstanceMutex.Dispose() } catch {}
+          """
+          new3 = """    try { $updateTimer.Stop(); $updateTimer.Dispose() } catch {}
+              try { if ($null -ne $script:InitialUpdateTimer) { $script:InitialUpdateTimer.Stop(); $script:InitialUpdateTimer.Dispose(); $script:InitialUpdateTimer = $null } } catch {}
+              try { $script:InstanceMutex.ReleaseMutex(); $script:InstanceMutex.Dispose() } catch {}
+          """
+          if old3 not in s:
+              raise SystemExit('exit block not found')
+          s = s.replace(old3, new3)
+          p.write_text(s, encoding='utf-8-sig')
+          r = Path('/tmp/agenda311/LEIA-ME.txt')
+          txt = r.read_text(encoding='utf-8-sig').replace('3.1.0', '3.1.1')
+          txt += '\n\nCorreção v3.1.1: elimina erro do .NET na verificação automática inicial e reforça a aplicação da atualização.\n'
+          r.write_text(txt, encoding='utf-8-sig')
+          PY
+          (cd /tmp/agenda311 && zip -q -r "$GITHUB_WORKSPACE/agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip" Agenda_Personalizada.ps1 ABRIR_AGENDA.bat LEIA-ME.txt)
+          HASH=$(sha256sum agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip | awk '{print $1}')
+          cat > agenda-personalizada/atualizacao.json <<EOF
+          {
+            "version": "3.1.1",
+            "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip",
+            "sha256": "$HASH",
+            "notes": "Correção do erro do .NET na verificação automática inicial e reforço do mecanismo de aplicação da atualização. Mantém as melhorias da v3.1.0 e preserva os dados."
+          }
+          EOF
+          unzip -t agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip
+      - name: Publish corrected update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip agenda-personalizada/atualizacao.json
+          git commit -m "Corrige Agenda Personalizada v3.1.1"
+          git push
