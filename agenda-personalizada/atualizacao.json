@@ -1,6 +1,6 @@
 {
-  "version": "3.1.1",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip",
-  "sha256": "6de150bdba6614129e4c0c115cc9e8eeac157caa10b09a5851158dd45d46078c",
-  "notes": "Correção do erro do .NET na verificação automática inicial e reforço do mecanismo de aplicação da atualização. Mantém as melhorias da v3.1.0 e preserva os dados."
+  "version": "4",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v4.zip",
+  "sha256": "ffbddb5ecc5408ef5c2c851d4455eb96c761d6a3bdc4bf8d734183b6c221c009",
+  "notes": "V4: corrige a postergação dos lembretes para reaparecer no novo horário sem limite de adiamentos; corrige Localizar com busca automática, Enter e botão Buscar; reforça backup e preservação dos dados durante a atualização."
 }
