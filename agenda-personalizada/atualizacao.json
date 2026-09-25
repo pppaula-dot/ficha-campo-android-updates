@@ -1,6 +1,6 @@
 {
-  "version": "6",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v6.zip",
-  "sha256": "58cbd6d4e68ae12e49ce2e1736e1b1c1449a9f308fefe8e3d1dd34e54cec6bae",
-  "notes": "V6: atualização exclusivamente visual. Interface mais moderna e minimalista, com profundidade suave, botões arredondados e copyright discreto. Mantém intactas as funções validadas da v5."
+  "version": "7",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v7.zip",
+  "sha256": "e766bf62ba331201042c48765638b2413581625a193def4ff6b7c8fe5f4de439",
+  "notes": "V7: visual com mais contraste e botões mais evidentes, mantendo o estilo minimalista. Corrige também o aviso falso de falha ao final de uma atualização bem-sucedida."
 }
