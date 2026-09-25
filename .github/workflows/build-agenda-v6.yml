@@ -1,0 +1,266 @@
+name: Build Agenda v6
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-agenda-v6.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Agenda v6
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agenda_v6
+          mkdir -p /tmp/agenda_v6
+          unzip -q agenda-personalizada/Agenda_Personalizada_update_v5.zip -d /tmp/agenda_v6
+
+          cat > /tmp/patch_v6.py <<'PY'
+          from pathlib import Path
+          p=Path('/tmp/agenda_v6/Agenda_Personalizada.ps1')
+          s=p.read_text(encoding='utf-8-sig')
+          if "$AppVersion = '5'" not in s:
+              raise SystemExit('base v5 nao encontrada')
+          s=s.replace("$AppVersion = '5'", "$AppVersion = '6'", 1)
+
+          anchor="$script:PauseIndefinitely = $false\n\n"
+          helpers=r'''$script:Theme = @{
+              Background = [System.Drawing.ColorTranslator]::FromHtml('#F4F7FB')
+              Surface = [System.Drawing.ColorTranslator]::FromHtml('#FFFFFF')
+              SurfaceAlt = [System.Drawing.ColorTranslator]::FromHtml('#F8FAFC')
+              Text = [System.Drawing.ColorTranslator]::FromHtml('#172033')
+              Muted = [System.Drawing.ColorTranslator]::FromHtml('#667085')
+              Border = [System.Drawing.ColorTranslator]::FromHtml('#D9E1EA')
+              Primary = [System.Drawing.ColorTranslator]::FromHtml('#2F6FED')
+              PrimaryDark = [System.Drawing.ColorTranslator]::FromHtml('#245DCC')
+              PrimarySoft = [System.Drawing.ColorTranslator]::FromHtml('#EAF1FF')
+              SuccessSoft = [System.Drawing.ColorTranslator]::FromHtml('#ECFDF3')
+              SuccessText = [System.Drawing.ColorTranslator]::FromHtml('#147D4F')
+              DangerSoft = [System.Drawing.ColorTranslator]::FromHtml('#FFF2F1')
+              DangerText = [System.Drawing.ColorTranslator]::FromHtml('#B42318')
+              Shadow = [System.Drawing.ColorTranslator]::FromHtml('#DDE4ED')
+          }
+
+          function Set-RoundedRegion([System.Windows.Forms.Control]$control, [int]$radius = 8) {
+              if ($null -eq $control -or $control.Width -le 2 -or $control.Height -le 2) { return }
+              try {
+                  $diameter = $radius * 2
+                  $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+                  $path.AddArc(0, 0, $diameter, $diameter, 180, 90)
+                  $path.AddArc($control.Width - $diameter - 1, 0, $diameter, $diameter, 270, 90)
+                  $path.AddArc($control.Width - $diameter - 1, $control.Height - $diameter - 1, $diameter, $diameter, 0, 90)
+                  $path.AddArc(0, $control.Height - $diameter - 1, $diameter, $diameter, 90, 90)
+                  $path.CloseFigure()
+                  if ($null -ne $control.Region) { $control.Region.Dispose() }
+                  $control.Region = New-Object System.Drawing.Region($path)
+                  $path.Dispose()
+              } catch {}
+          }
+
+          function Set-ModernButton([System.Windows.Forms.Button]$button) {
+              if ($null -eq $button) { return }
+              $button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+              $button.FlatAppearance.BorderSize = 1
+              $button.Cursor = [System.Windows.Forms.Cursors]::Hand
+              $button.UseVisualStyleBackColor = $false
+              $button.Font = New-Object System.Drawing.Font('Segoe UI',9,[System.Drawing.FontStyle]::Regular)
+
+              $text = ([string]$button.Text).Trim()
+              if ($text -in @('Novo agendamento','Salvar tarefa','Salvar','Buscar')) {
+                  $button.BackColor = $script:Theme.Primary
+                  $button.ForeColor = [System.Drawing.Color]::White
+                  $button.FlatAppearance.BorderColor = $script:Theme.PrimaryDark
+                  $button.Font = New-Object System.Drawing.Font('Segoe UI',9,[System.Drawing.FontStyle]::Bold)
+                  $button.FlatAppearance.MouseOverBackColor = $script:Theme.PrimaryDark
+                  $button.FlatAppearance.MouseDownBackColor = $script:Theme.PrimaryDark
+              } elseif ($text -eq 'Concluir') {
+                  $button.BackColor = $script:Theme.SuccessSoft
+                  $button.ForeColor = $script:Theme.SuccessText
+                  $button.FlatAppearance.BorderColor = [System.Drawing.ColorTranslator]::FromHtml('#B7E5CD')
+                  $button.FlatAppearance.MouseOverBackColor = [System.Drawing.ColorTranslator]::FromHtml('#DCF8E9')
+              } elseif ($text -eq 'Excluir') {
+                  $button.BackColor = $script:Theme.DangerSoft
+                  $button.ForeColor = $script:Theme.DangerText
+                  $button.FlatAppearance.BorderColor = [System.Drawing.ColorTranslator]::FromHtml('#F5C2BE')
+                  $button.FlatAppearance.MouseOverBackColor = [System.Drawing.ColorTranslator]::FromHtml('#FFE4E1')
+              } else {
+                  $button.BackColor = $script:Theme.Surface
+                  $button.ForeColor = $script:Theme.Text
+                  $button.FlatAppearance.BorderColor = $script:Theme.Border
+                  $button.FlatAppearance.MouseOverBackColor = $script:Theme.PrimarySoft
+                  $button.FlatAppearance.MouseDownBackColor = [System.Drawing.ColorTranslator]::FromHtml('#DCE8FF')
+              }
+              Set-RoundedRegion $button 8
+              $button.Add_SizeChanged({ param($sender,$e) Set-RoundedRegion $sender 8 })
+          }
+
+          function Apply-ModernFormStyle([System.Windows.Forms.Form]$root) {
+              if ($null -eq $root) { return }
+              $root.BackColor = $script:Theme.Background
+              $root.ForeColor = $script:Theme.Text
+              $root.Font = New-Object System.Drawing.Font('Segoe UI',9)
+
+              $stack = New-Object System.Collections.Stack
+              $stack.Push($root)
+              while ($stack.Count -gt 0) {
+                  $parent = $stack.Pop()
+                  foreach ($c in $parent.Controls) {
+                      if ($c -is [System.Windows.Forms.Button]) {
+                          Set-ModernButton $c
+                      } elseif ($c -is [System.Windows.Forms.TextBox]) {
+                          $c.BackColor = $script:Theme.Surface
+                          $c.ForeColor = $script:Theme.Text
+                          $c.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+                      } elseif ($c -is [System.Windows.Forms.ListView]) {
+                          $c.BackColor = $script:Theme.Surface
+                          $c.ForeColor = $script:Theme.Text
+                          $c.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+                          $c.GridLines = $false
+                      } elseif ($c -is [System.Windows.Forms.TabPage]) {
+                          $c.BackColor = $script:Theme.Surface
+                          $c.ForeColor = $script:Theme.Text
+                      } elseif ($c -is [System.Windows.Forms.GroupBox]) {
+                          $c.BackColor = $script:Theme.Surface
+                          $c.ForeColor = $script:Theme.Text
+                          $c.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+                      } elseif ($c -is [System.Windows.Forms.Panel]) {
+                          if ($c.Name -ne 'shadow') { $c.BackColor = $script:Theme.Background }
+                      } elseif ($c -is [System.Windows.Forms.Label]) {
+                          if ($c.ForeColor -eq [System.Drawing.Color]::ControlText) { $c.ForeColor = $script:Theme.Text }
+                      }
+                      if ($c.HasChildren) { $stack.Push($c) }
+                  }
+              }
+          }
+
+          function Show-AboutDialog {
+              $f = New-Object System.Windows.Forms.Form
+              $f.Text = 'Sobre a Agenda'
+              $f.Size = New-Object System.Drawing.Size(500,280)
+              $f.StartPosition = 'CenterParent'
+              $f.FormBorderStyle = 'FixedDialog'
+              $f.MaximizeBox = $false
+              $f.MinimizeBox = $false
+
+              $title = New-Object System.Windows.Forms.Label
+              $title.Text = 'Agenda Personalizada'
+              $title.Font = New-Object System.Drawing.Font('Segoe UI',18,[System.Drawing.FontStyle]::Bold)
+              $title.Location = New-Object System.Drawing.Point(28,28); $title.AutoSize = $true
+              $f.Controls.Add($title)
+
+              $ver = New-Object System.Windows.Forms.Label
+              $ver.Text = "Versão $AppVersion"
+              $ver.Location = New-Object System.Drawing.Point(31,70); $ver.AutoSize = $true; $ver.ForeColor = $script:Theme.Muted
+              $f.Controls.Add($ver)
+
+              $copy = New-Object System.Windows.Forms.Label
+              $copy.Text = '© 2026 @paulapmiranda — Uso restrito. Reprodução e distribuição não autorizadas.'
+              $copy.Location = New-Object System.Drawing.Point(31,112); $copy.Size = New-Object System.Drawing.Size(420,55)
+              $copy.ForeColor = $script:Theme.Muted
+              $f.Controls.Add($copy)
+
+              $ok = New-Object System.Windows.Forms.Button
+              $ok.Text = 'Fechar'; $ok.Location = New-Object System.Drawing.Point(330,185); $ok.Size = New-Object System.Drawing.Size(120,38)
+              $ok.Add_Click({ $f.Close() })
+              $f.Controls.Add($ok)
+
+              Apply-ModernFormStyle $f
+              [void]$f.ShowDialog($script:MainForm)
+              $f.Dispose()
+          }
+
+          '''
+          if anchor not in s:
+              raise SystemExit('anchor theme not found')
+          s=s.replace(anchor, anchor+helpers, 1)
+
+          s=s.replace('    [void]$f.ShowDialog($script:MainForm)\n', '    Apply-ModernFormStyle $f\n    [void]$f.ShowDialog($script:MainForm)\n')
+          s=s.replace('    if ($f.ShowDialog($script:MainForm) -eq [System.Windows.Forms.DialogResult]::OK)', '    Apply-ModernFormStyle $f\n    if ($f.ShowDialog($script:MainForm) -eq [System.Windows.Forms.DialogResult]::OK)')
+          s=s.replace('    Apply-ModernFormStyle $f\n    Apply-ModernFormStyle $f\n    [void]$f.ShowDialog($script:MainForm)', '    Apply-ModernFormStyle $f\n    [void]$f.ShowDialog($script:MainForm)',1)
+
+          old="    $f.Add_FormClosed(({ [void]$script:OpenReminderIds.Remove($id) }).GetNewClosure())\n    [void]$f.Show()"
+          new="    $f.Add_FormClosed(({ [void]$script:OpenReminderIds.Remove($id) }).GetNewClosure())\n    Apply-ModernFormStyle $f\n    $f.BackColor = $script:Theme.Surface\n    [void]$f.Show()"
+          if old not in s:
+              raise SystemExit('reminder anchor not found')
+          s=s.replace(old,new,1)
+
+          s=s.replace("$form.Font = New-Object System.Drawing.Font('Segoe UI',9)\n$form.Icon", "$form.Font = New-Object System.Drawing.Font('Segoe UI',9)\n$form.BackColor = $script:Theme.Background\n$form.Icon",1)
+          s=s.replace("$header.Font = New-Object System.Drawing.Font('Segoe UI',20,[System.Drawing.FontStyle]::Bold)", "$header.Font = New-Object System.Drawing.Font('Segoe UI Semibold',21,[System.Drawing.FontStyle]::Bold)\n$header.ForeColor = $script:Theme.Text",1)
+          s=s.replace("$status.Location = New-Object System.Drawing.Point(23,55); $status.AutoSize = $true; $status.ForeColor = [System.Drawing.Color]::DimGray", "$status.Location = New-Object System.Drawing.Point(23,56); $status.AutoSize = $true; $status.ForeColor = $script:Theme.Muted",1)
+          s=s.replace("$versionLabel.ForeColor = [System.Drawing.Color]::DimGray", "$versionLabel.ForeColor = $script:Theme.Muted",1)
+
+          needle="$form.Controls.Add($newScheduleTop)\n\n$quick = New-Object System.Windows.Forms.GroupBox"
+          divider="$form.Controls.Add($newScheduleTop)\n\n$headerDivider = New-Object System.Windows.Forms.Panel\n$headerDivider.Location = New-Object System.Drawing.Point(20,72); $headerDivider.Size = New-Object System.Drawing.Size(925,2); $headerDivider.Anchor = 'Top,Left,Right'\n$headerDivider.BackColor = $script:Theme.Border\n$form.Controls.Add($headerDivider)\n\n$quickShadow = New-Object System.Windows.Forms.Panel\n$quickShadow.Name = 'shadow'\n$quickShadow.Location = New-Object System.Drawing.Point(23,87); $quickShadow.Size = New-Object System.Drawing.Size(925,135); $quickShadow.Anchor = 'Top,Left,Right'\n$quickShadow.BackColor = $script:Theme.Shadow\n$form.Controls.Add($quickShadow)\n\n$quick = New-Object System.Windows.Forms.GroupBox"
+          if needle not in s:
+              raise SystemExit('main header anchor not found')
+          s=s.replace(needle,divider,1)
+          s=s.replace("$form.Controls.Add($quick)\n\n$txt", "$form.Controls.Add($quick)\n$quick.BringToFront()\n\n$txt",1)
+
+          needle="$tabs = New-Object System.Windows.Forms.TabControl\n$tabs.Location = New-Object System.Drawing.Point(20,232); $tabs.Size = New-Object System.Drawing.Size(925,350); $tabs.Anchor = 'Top,Bottom,Left,Right'\n$form.Controls.Add($tabs)"
+          repl="$tabsShadow = New-Object System.Windows.Forms.Panel\n$tabsShadow.Name = 'shadow'\n$tabsShadow.Location = New-Object System.Drawing.Point(23,235); $tabsShadow.Size = New-Object System.Drawing.Size(925,350); $tabsShadow.Anchor = 'Top,Bottom,Left,Right'\n$tabsShadow.BackColor = $script:Theme.Shadow\n$form.Controls.Add($tabsShadow)\n\n$tabs = New-Object System.Windows.Forms.TabControl\n$tabs.Location = New-Object System.Drawing.Point(20,232); $tabs.Size = New-Object System.Drawing.Size(925,350); $tabs.Anchor = 'Top,Bottom,Left,Right'\n$form.Controls.Add($tabs)\n$tabs.BringToFront()"
+          if needle not in s:
+              raise SystemExit('tabs anchor not found')
+          s=s.replace(needle,repl,1)
+
+          s=s.replace("$actions.Location = New-Object System.Drawing.Point(20,592); $actions.Size = New-Object System.Drawing.Size(925,55);", "$actions.Location = New-Object System.Drawing.Point(20,582); $actions.Size = New-Object System.Drawing.Size(925,70);",1)
+
+          needle="$actions.Controls.Add($pinButton)\n\n$script:ListToday.Add_DoubleClick"
+          footer="$actions.Controls.Add($pinButton)\n\n$copyright = New-Object System.Windows.Forms.Label\n$copyright.Text = '© 2026 @paulapmiranda — Uso restrito. Reprodução e distribuição não autorizadas.'\n$copyright.Location = New-Object System.Drawing.Point(4,52); $copyright.Size = New-Object System.Drawing.Size(915,16); $copyright.Anchor = 'Bottom,Left,Right'\n$copyright.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter\n$copyright.Font = New-Object System.Drawing.Font('Segoe UI',7.5)\n$copyright.ForeColor = $script:Theme.Muted\n$actions.Controls.Add($copyright)\n\n$script:ListToday.Add_DoubleClick"
+          if needle not in s:
+              raise SystemExit('footer anchor not found')
+          s=s.replace(needle,footer,1)
+
+          needle="$miFolder = $dataMenu.Items.Add('Abrir pasta da agenda')\n"
+          if needle not in s:
+              raise SystemExit('about menu anchor not found')
+          s=s.replace(needle, "$miFolder = $dataMenu.Items.Add('Abrir pasta da agenda')\n[void]$dataMenu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator))\n$miAbout = $dataMenu.Items.Add('Sobre a Agenda')\n",1)
+          needle="$miFolder.Add_Click({ Start-Process explorer.exe $AppDir })\n"
+          s=s.replace(needle, needle+"$miAbout.Add_Click({ Show-AboutDialog })\n",1)
+
+          needle="$script:ListUpcoming.Add_DoubleClick({ $id=Get-SelectedId $script:ListUpcoming; if($id){ Show-EditDialog $id } })\n\n$trayMenu"
+          repl="$script:ListUpcoming.Add_DoubleClick({ $id=Get-SelectedId $script:ListUpcoming; if($id){ Show-EditDialog $id } })\n\nApply-ModernFormStyle $form\n$header.Font = New-Object System.Drawing.Font('Segoe UI Semibold',21,[System.Drawing.FontStyle]::Bold)\n$header.ForeColor = $script:Theme.Text\n$status.ForeColor = $script:Theme.Muted\n$versionLabel.ForeColor = $script:Theme.Muted\n$headerDivider.BackColor = $script:Theme.Border\n$quickShadow.BackColor = $script:Theme.Shadow\n$tabsShadow.BackColor = $script:Theme.Shadow\n$copyright.ForeColor = $script:Theme.Muted\n\n$trayMenu"
+          if needle not in s:
+              raise SystemExit('theme main anchor not found')
+          s=s.replace(needle,repl,1)
+
+          p.write_text(s,encoding='utf-8-sig')
+
+          r=Path('/tmp/agenda_v6/LEIA-ME.txt')
+          txt=r.read_text(encoding='utf-8-sig')
+          txt += "\n\nVERSÃO 6 — atualização visual\n- Visual mais moderno e minimalista, com profundidade suave e botões arredondados.\n- Paleta clara e discreta, mantendo alta legibilidade.\n- Copyright discreto no rodapé e em Dados > Sobre a Agenda.\n- Nenhuma alteração na lógica de alarmes, adiamentos, busca, dados ou atualização automática.\n"
+          r.write_text(txt,encoding='utf-8-sig')
+          PY
+
+          python3 /tmp/patch_v6.py
+
+          (cd /tmp/agenda_v6 && zip -q -r "$GITHUB_WORKSPACE/agenda-personalizada/Agenda_Personalizada_update_v6.zip" Agenda_Personalizada.ps1 ABRIR_AGENDA.bat LEIA-ME.txt)
+          cp agenda-personalizada/Agenda_Personalizada_update_v6.zip agenda-personalizada/Agenda_Personalizada_Distribuicao_v6.zip
+
+          unzip -t agenda-personalizada/Agenda_Personalizada_update_v6.zip
+          HASH=$(sha256sum agenda-personalizada/Agenda_Personalizada_update_v6.zip | awk '{print $1}')
+
+          cat > agenda-personalizada/atualizacao.json <<EOF
+          {
+            "version": "6",
+            "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v6.zip",
+            "sha256": "$HASH",
+            "notes": "V6: atualização exclusivamente visual. Interface mais moderna e minimalista, com profundidade suave, botões arredondados e copyright discreto. Mantém intactas as funções validadas da v5."
+          }
+          EOF
+
+      - name: Publish Agenda v6
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agenda-personalizada/Agenda_Personalizada_update_v6.zip agenda-personalizada/Agenda_Personalizada_Distribuicao_v6.zip agenda-personalizada/atualizacao.json
+          git commit -m "Publica Agenda Personalizada v6"
+          git push
