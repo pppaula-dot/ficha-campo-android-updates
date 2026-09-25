@@ -52,8 +52,8 @@ jobs:
                   "Shadow = [System.Drawing.ColorTranslator]::FromHtml('#BAC5D3')",
               "$button.FlatAppearance.BorderSize = 1":
                   "$button.FlatAppearance.BorderSize = 2",
-              "$button.BackColor = $script:Theme.Surface\n                  $button.ForeColor = $script:Theme.Text":
-                  "$button.BackColor = $script:Theme.SurfaceAlt\n                  $button.ForeColor = $script:Theme.Text",
+              "$button.BackColor = $script:Theme.Surface":
+                  "$button.BackColor = $script:Theme.SurfaceAlt",
           }
 
           for old, new in replacements.items():
