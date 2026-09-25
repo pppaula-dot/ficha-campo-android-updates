@@ -1,7 +1,7 @@
 {
-  "versionCode": 37,
-  "versionName": "3.1.0",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/rat-v3.1.0/rat-campo-condicionantes.apk",
-  "sha256": "9895a2b076a3f9a44c78dae9faa1f386aafe8b9b3f7d3361b4c0267d3c5183e1",
-  "notes": "RAT Campo Condicionantes v3.1.0."
+  "versionCode": 38,
+  "versionName": "3.2.0",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/rat-v3.2.0/rat-campo-condicionantes.apk",
+  "sha256": "53d79cb65277a3d7407111237857f12831b6befaf570a09bd54d60abc95c7685",
+  "notes": "RAT Campo Condicionantes v3.2.0."
 }
