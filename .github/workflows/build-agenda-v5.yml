@@ -1,0 +1,188 @@
+name: Build Agenda v5
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-agenda-v5.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Agenda v5
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agenda_v5
+          mkdir -p /tmp/agenda_v5
+          unzip -q agenda-personalizada/Agenda_Personalizada_update_3.1.1.zip -d /tmp/agenda_v5
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('/tmp/agenda_v5/Agenda_Personalizada.ps1')
+          s = p.read_text(encoding='utf-8-sig')
+          s = s.replace("$AppVersion = '3.1.1'", "$AppVersion = '5'")
+
+          start = s.index('function Show-SearchDialog {')
+          end = s.index('\nfunction Show-NewScheduleDialog {', start)
+
+          new = r'''function Refresh-SearchResults([System.Windows.Forms.TextBox]$queryBox, [System.Windows.Forms.ListView]$results) {
+              if ($null -eq $queryBox -or $null -eq $results) { return }
+              $results.BeginUpdate()
+              try {
+                  $results.Items.Clear()
+                  $needle = ([string]$queryBox.Text).Trim()
+                  $items = @($script:Tasks | Sort-Object { Convert-ToDateTime $_.Due })
+                  foreach ($t in $items) {
+                      $title = [string]$t.Title
+                      if (-not [string]::IsNullOrWhiteSpace($needle) -and $title.IndexOf($needle, [System.StringComparison]::CurrentCultureIgnoreCase) -lt 0) { continue }
+                      $due = Convert-ToDateTime $t.Due
+                      $status = if ([bool]$t.Done) { 'CONCLUÍDA' } elseif ($due -and $due -lt (Get-Date)) { 'PENDENTE' } else { 'AGENDADA' }
+                      $li = New-Object System.Windows.Forms.ListViewItem($status)
+                      [void]$li.SubItems.Add($(if ($due) { $due.ToString('dd/MM/yyyy HH:mm') } else { '' }))
+                      [void]$li.SubItems.Add($title)
+                      $li.Tag = [string]$t.Id
+                      [void]$results.Items.Add($li)
+                  }
+              } finally {
+                  $results.EndUpdate()
+              }
+          }
+
+          function Edit-SelectedSearchResult([System.Windows.Forms.ListView]$results) {
+              if ($null -eq $results -or $results.SelectedItems.Count -eq 0) { return }
+              $id = [string]$results.SelectedItems[0].Tag
+              $task = $script:Tasks | Where-Object { $_.Id -eq $id } | Select-Object -First 1
+              if ($task -and -not [bool]$task.Done) {
+                  Show-EditDialog $id
+                  $queryBox = $results.Tag
+                  if ($queryBox -is [System.Windows.Forms.TextBox]) {
+                      Refresh-SearchResults $queryBox $results
+                  }
+              }
+          }
+
+          function Show-SearchDialog {
+              $f = New-Object System.Windows.Forms.Form
+              $f.Text = 'Localizar agendamento'
+              $f.Size = New-Object System.Drawing.Size(800,540)
+              $f.StartPosition = 'CenterParent'
+              $f.MinimumSize = New-Object System.Drawing.Size(700,450)
+              $f.Font = New-Object System.Drawing.Font('Segoe UI',9)
+
+              $lbl = New-Object System.Windows.Forms.Label
+              $lbl.Text = 'Digite parte do nome da tarefa:'; $lbl.Location = New-Object System.Drawing.Point(20,18); $lbl.AutoSize = $true
+              $f.Controls.Add($lbl)
+
+              $q = New-Object System.Windows.Forms.TextBox
+              $q.Location = New-Object System.Drawing.Point(20,43); $q.Size = New-Object System.Drawing.Size(600,30); $q.Anchor = 'Top,Left,Right'
+              $q.Font = New-Object System.Drawing.Font('Segoe UI',11)
+              $f.Controls.Add($q)
+
+              $search = New-Object System.Windows.Forms.Button
+              $search.Text = 'Buscar'; $search.Location = New-Object System.Drawing.Point(635,41); $search.Size = New-Object System.Drawing.Size(125,34); $search.Anchor = 'Top,Right'
+              $f.Controls.Add($search)
+
+              $results = New-Object System.Windows.Forms.ListView
+              $results.View = 'Details'; $results.FullRowSelect = $true; $results.GridLines = $true; $results.HideSelection = $false
+              [void]$results.Columns.Add('Status',95)
+              [void]$results.Columns.Add('Data / hora',135)
+              [void]$results.Columns.Add('Tarefa',470)
+              $results.Location = New-Object System.Drawing.Point(20,85); $results.Size = New-Object System.Drawing.Size(740,340); $results.Anchor = 'Top,Bottom,Left,Right'
+              $f.Controls.Add($results)
+
+              $q.Tag = $results
+              $results.Tag = $q
+              $search.Tag = $q
+
+              $q.Add_TextChanged({
+                  param($sender,$e)
+                  $list = $sender.Tag
+                  if ($list -is [System.Windows.Forms.ListView]) { Refresh-SearchResults $sender $list }
+              })
+
+              $q.Add_KeyDown({
+                  param($sender,$e)
+                  if ($e.KeyCode -eq [System.Windows.Forms.Keys]::Enter) {
+                      $list = $sender.Tag
+                      if ($list -is [System.Windows.Forms.ListView]) { Refresh-SearchResults $sender $list }
+                      $e.SuppressKeyPress = $true
+                      $e.Handled = $true
+                  }
+              })
+
+              $search.Add_Click({
+                  param($sender,$e)
+                  $queryBox = $sender.Tag
+                  if ($queryBox -is [System.Windows.Forms.TextBox] -and $queryBox.Tag -is [System.Windows.Forms.ListView]) {
+                      Refresh-SearchResults $queryBox $queryBox.Tag
+                      $queryBox.Focus()
+                  }
+              })
+
+              $results.Add_DoubleClick({
+                  param($sender,$e)
+                  Edit-SelectedSearchResult $sender
+              })
+
+              $edit = New-Object System.Windows.Forms.Button
+              $edit.Text = 'Editar selecionado'; $edit.Location = New-Object System.Drawing.Point(20,440); $edit.Size = New-Object System.Drawing.Size(160,42); $edit.Anchor = 'Bottom,Left'
+              $edit.Tag = $results
+              $edit.Add_Click({
+                  param($sender,$e)
+                  if ($sender.Tag -is [System.Windows.Forms.ListView]) { Edit-SelectedSearchResult $sender.Tag }
+              })
+              $f.Controls.Add($edit)
+
+              $close = New-Object System.Windows.Forms.Button
+              $close.Text = 'Fechar'; $close.Location = New-Object System.Drawing.Point(600,440); $close.Size = New-Object System.Drawing.Size(160,42); $close.Anchor = 'Bottom,Right'
+              $close.Add_Click({ param($sender,$e) $sender.FindForm().Close() })
+              $f.Controls.Add($close)
+
+              $f.AcceptButton = $search
+              Refresh-SearchResults $q $results
+              $q.Focus()
+              [void]$f.ShowDialog($script:MainForm)
+              $f.Dispose()
+          }
+          '''
+
+          s = s[:start] + new + s[end:]
+          p.write_text(s, encoding='utf-8-sig')
+
+          r = Path('/tmp/agenda_v5/LEIA-ME.txt')
+          txt = r.read_text(encoding='utf-8-sig')
+          txt = txt.replace('AGENDA PERSONALIZADA - VERSÃO 3.1.1', 'AGENDA PERSONALIZADA - VERSÃO 5')
+          txt += '\n\nVERSÃO 5\n- Corrige Localizar: pesquisa automática enquanto digita.\n- Pesquisa também por Enter e pelo botão Buscar.\n- Mantém Editar selecionado.\n- Preserva as funções já validadas, inclusive adiamentos sucessivos e atualização com backup.\n'
+          r.write_text(txt, encoding='utf-8-sig')
+          PY
+
+          (cd /tmp/agenda_v5 && zip -q -r "$GITHUB_WORKSPACE/agenda-personalizada/Agenda_Personalizada_update_v5.zip" Agenda_Personalizada.ps1 ABRIR_AGENDA.bat LEIA-ME.txt)
+          HASH=$(sha256sum agenda-personalizada/Agenda_Personalizada_update_v5.zip | awk '{print $1}')
+
+          cat > agenda-personalizada/atualizacao.json <<EOF
+          {
+            "version": "5",
+            "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v5.zip",
+            "sha256": "$HASH",
+            "notes": "V5: corrige exclusivamente o Localizar. A pesquisa passa a funcionar enquanto digita, por Enter e pelo botão Buscar, mantendo Editar selecionado. As demais funções da v4 permanecem preservadas."
+          }
+          EOF
+
+          unzip -t agenda-personalizada/Agenda_Personalizada_update_v5.zip
+
+      - name: Publish Agenda v5
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agenda-personalizada/Agenda_Personalizada_update_v5.zip agenda-personalizada/atualizacao.json
+          git commit -m "Publica Agenda Personalizada v5"
+          git push
