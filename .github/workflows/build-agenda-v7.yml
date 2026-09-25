@@ -1,0 +1,126 @@
+name: Build Agenda v7
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-agenda-v7.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Agenda v7
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agenda_v7
+          mkdir -p /tmp/agenda_v7
+          unzip -q agenda-personalizada/Agenda_Personalizada_update_v6.zip -d /tmp/agenda_v7
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('/tmp/agenda_v7/Agenda_Personalizada.ps1')
+          s = p.read_text(encoding='utf-8-sig')
+
+          if "$AppVersion = '6'" not in s:
+              raise SystemExit('base v6 nao encontrada')
+          s = s.replace("$AppVersion = '6'", "$AppVersion = '7'", 1)
+
+          replacements = {
+              "Background = [System.Drawing.ColorTranslator]::FromHtml('#F4F7FB')":
+                  "Background = [System.Drawing.ColorTranslator]::FromHtml('#E8EDF4')",
+              "SurfaceAlt = [System.Drawing.ColorTranslator]::FromHtml('#F8FAFC')":
+                  "SurfaceAlt = [System.Drawing.ColorTranslator]::FromHtml('#EEF2F7')",
+              "Text = [System.Drawing.ColorTranslator]::FromHtml('#172033')":
+                  "Text = [System.Drawing.ColorTranslator]::FromHtml('#111827')",
+              "Muted = [System.Drawing.ColorTranslator]::FromHtml('#667085')":
+                  "Muted = [System.Drawing.ColorTranslator]::FromHtml('#475467')",
+              "Border = [System.Drawing.ColorTranslator]::FromHtml('#D9E1EA')":
+                  "Border = [System.Drawing.ColorTranslator]::FromHtml('#AEB9C7')",
+              "Primary = [System.Drawing.ColorTranslator]::FromHtml('#2F6FED')":
+                  "Primary = [System.Drawing.ColorTranslator]::FromHtml('#245BD7')",
+              "PrimaryDark = [System.Drawing.ColorTranslator]::FromHtml('#245DCC')":
+                  "PrimaryDark = [System.Drawing.ColorTranslator]::FromHtml('#1847B7')",
+              "PrimarySoft = [System.Drawing.ColorTranslator]::FromHtml('#EAF1FF')":
+                  "PrimarySoft = [System.Drawing.ColorTranslator]::FromHtml('#DDE8FB')",
+              "Shadow = [System.Drawing.ColorTranslator]::FromHtml('#DDE4ED')":
+                  "Shadow = [System.Drawing.ColorTranslator]::FromHtml('#BAC5D3')",
+              "$button.FlatAppearance.BorderSize = 1":
+                  "$button.FlatAppearance.BorderSize = 2",
+              "$button.BackColor = $script:Theme.Surface\n                  $button.ForeColor = $script:Theme.Text":
+                  "$button.BackColor = $script:Theme.SurfaceAlt\n                  $button.ForeColor = $script:Theme.Text",
+          }
+
+          for old, new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f'visual anchor not found: {old}')
+              s = s.replace(old, new, 1)
+
+          old = """        Start-Process -FilePath $env:ComSpec -ArgumentList @('/c', ('"' + $updater + '"')) -WindowStyle Hidden
+                  $script:ExitRequested = $true
+                  if ($script:TrayIcon) { $script:TrayIcon.Visible = $false }
+                  [System.Windows.Forms.Application]::Exit()
+              } catch {
+                  [System.Windows.Forms.MessageBox]::Show("Não foi possível aplicar a atualização.`n$($_.Exception.Message)", 'Agenda Personalizada') | Out-Null
+              }
+          """
+          new = """        Save-Tasks
+                  Save-Settings
+                  Start-Process -FilePath $env:ComSpec -ArgumentList @('/c', ('"' + $updater + '"')) -WindowStyle Hidden
+                  $script:ExitRequested = $true
+                  try { if ($script:TrayIcon) { $script:TrayIcon.Visible = $false } } catch {}
+                  try { if ($script:MainForm) { $script:MainForm.Hide() } } catch {}
+                  [System.Environment]::Exit(0)
+              } catch {
+                  [System.Windows.Forms.MessageBox]::Show("Não foi possível aplicar a atualização.`n$($_.Exception.Message)", 'Agenda Personalizada') | Out-Null
+              }
+          """
+          if old not in s:
+              raise SystemExit('update exit block not found')
+          s = s.replace(old, new, 1)
+
+          p.write_text(s, encoding='utf-8-sig')
+
+          r = Path('/tmp/agenda_v7/LEIA-ME.txt')
+          txt = r.read_text(encoding='utf-8-sig')
+          txt += """
+          
+          VERSÃO 7 — refinamento visual
+          - Fundo menos claro e maior contraste entre áreas.
+          - Botões com mais presença, bordas mais definidas e destaque visual.
+          - Mantém o estilo minimalista e moderno da v6.
+          - Corrige a mensagem falsa de erro ao encerrar o aplicativo durante uma atualização bem-sucedida.
+          - Mantém intactas busca, adiamentos, alarmes, dados e demais funções já validadas.
+          """
+          r.write_text(txt, encoding='utf-8-sig')
+          PY
+
+          (cd /tmp/agenda_v7 && zip -q -r "$GITHUB_WORKSPACE/agenda-personalizada/Agenda_Personalizada_update_v7.zip" Agenda_Personalizada.ps1 ABRIR_AGENDA.bat LEIA-ME.txt)
+          cp agenda-personalizada/Agenda_Personalizada_update_v7.zip agenda-personalizada/Agenda_Personalizada_Distribuicao_v7.zip
+
+          unzip -t agenda-personalizada/Agenda_Personalizada_update_v7.zip
+          HASH=$(sha256sum agenda-personalizada/Agenda_Personalizada_update_v7.zip | awk '{print $1}')
+
+          cat > agenda-personalizada/atualizacao.json <<EOF
+          {
+            "version": "7",
+            "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v7.zip",
+            "sha256": "$HASH",
+            "notes": "V7: visual com mais contraste e botões mais evidentes, mantendo o estilo minimalista. Corrige também o aviso falso de falha ao final de uma atualização bem-sucedida."
+          }
+          EOF
+
+      - name: Publish Agenda v7
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agenda-personalizada/Agenda_Personalizada_update_v7.zip agenda-personalizada/Agenda_Personalizada_Distribuicao_v7.zip agenda-personalizada/atualizacao.json
+          git commit -m "Publica Agenda Personalizada v7"
+          git push
