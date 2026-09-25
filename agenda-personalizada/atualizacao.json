@@ -1,6 +1,6 @@
 {
-  "version": "4",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v4.zip",
-  "sha256": "ffbddb5ecc5408ef5c2c851d4455eb96c761d6a3bdc4bf8d734183b6c221c009",
-  "notes": "V4: corrige a postergação dos lembretes para reaparecer no novo horário sem limite de adiamentos; corrige Localizar com busca automática, Enter e botão Buscar; reforça backup e preservação dos dados durante a atualização."
+  "version": "5",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v5.zip",
+  "sha256": "f1bb0ae2c91985bb288cb3e193682117b03e18c0ce639b8b667c326fb6d18885",
+  "notes": "V5: corrige exclusivamente o Localizar. A pesquisa passa a funcionar enquanto digita, por Enter e pelo botão Buscar, mantendo Editar selecionado. As demais funções da v4 permanecem preservadas."
 }
