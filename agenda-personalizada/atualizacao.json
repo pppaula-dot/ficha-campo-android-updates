@@ -1,6 +1,6 @@
 {
-  "version": "5",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v5.zip",
-  "sha256": "f1bb0ae2c91985bb288cb3e193682117b03e18c0ce639b8b667c326fb6d18885",
-  "notes": "V5: corrige exclusivamente o Localizar. A pesquisa passa a funcionar enquanto digita, por Enter e pelo botão Buscar, mantendo Editar selecionado. As demais funções da v4 permanecem preservadas."
+  "version": "6",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v6.zip",
+  "sha256": "58cbd6d4e68ae12e49ce2e1736e1b1c1449a9f308fefe8e3d1dd34e54cec6bae",
+  "notes": "V6: atualização exclusivamente visual. Interface mais moderna e minimalista, com profundidade suave, botões arredondados e copyright discreto. Mantém intactas as funções validadas da v5."
 }
