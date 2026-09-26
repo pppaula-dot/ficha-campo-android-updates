@@ -3,5 +3,5 @@
   "versionName": "5",
   "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/rat-v5/rat-campo-condicionantes.apk",
   "sha256": "95921a22e96b63c00251d1e98c0e328c19989ee47ea38f35be6dc6359c86f2a5",
-  "notes": "RAT Campo Condicionantes v4."
+  "notes": "RAT Campo Condicionantes v5: melhorias de uso em campo, envio somente do relatório, exclusão de fotos e atualização mais automática."
 }
