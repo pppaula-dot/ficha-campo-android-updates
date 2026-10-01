@@ -1,0 +1,21 @@
+AGENDA PERSONALIZADA — VERSÃO 8
+
+CORREÇÕES DO LEMBRETE
+- Aviso mais compacto, com os mesmos comandos de adiamento e reagendamento.
+- O aviso aparece sem tomar o teclado do programa em uso.
+- Nenhum botão fica selecionado automaticamente.
+- Concluir usa o mesmo visual neutro dos demais botões do aviso.
+- Os comandos do aviso respondem ao clique do mouse. Enter e Espaço digitados em outro programa não concluem nem adiam lembretes.
+
+ATUALIZAR A AGENDA EXISTENTE
+Na própria Agenda, escolha Dados > Verificar atualizações.
+O atualizador substitui os arquivos do programa na pasta atual e cria uma cópia de segurança dos dados.
+agenda_dados.json, agenda_config.json e a pasta backups não integram este pacote.
+
+INSTALAÇÃO MANUAL
+1. Na Agenda, escolha Avisos > Sair completamente da Agenda.
+2. Extraia os três arquivos deste pacote na mesma pasta da Agenda que já utiliza.
+3. Confirme a substituição dos arquivos do programa e abra ABRIR_AGENDA.bat.
+Mantenha os arquivos agenda_dados.json e agenda_config.json e a pasta backups existentes.
+
+Os lançamentos concluídos permanecem na aba Concluídas. Fechar apenas o aviso mantém a tarefa pendente.

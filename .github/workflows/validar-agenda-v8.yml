@@ -1,0 +1,28 @@
+name: Validar Agenda v8 no Windows
+
+on:
+  push:
+    paths:
+      - 'agenda-personalizada/src/**'
+      - 'agenda-personalizada/tests/**'
+      - '.github/workflows/validar-agenda-v8.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar aviso, teclado e preservação de dados
+        shell: powershell
+        run: ./agenda-personalizada/tests/lembrete_v8.ps1
+      - name: Guardar imagem do aviso
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agenda-v8-verificacao
+          path: agenda-personalizada/test-results/
+          if-no-files-found: ignore
