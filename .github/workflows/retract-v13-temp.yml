@@ -1,0 +1,24 @@
+name: Retirar V13 temporariamente
+
+on:
+  push:
+    paths:
+      - ".github/workflows/retract-v13-temp.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  retirar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retirar Release V13
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v13 --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release delete v13 --repo "${GITHUB_REPOSITORY}" --yes --cleanup-tag
+          else
+            echo "Release V13 já não está publicada."
+          fi
