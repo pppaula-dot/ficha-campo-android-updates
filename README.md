@@ -4,8 +4,8 @@ Repositório público de distribuição das atualizações Android.
 
 ## Estado atual
 
-- versão publicada: V8.3 / versionCode 23
-- APK: `ficha-campo-acompanhamento.apk`
+- versão publicada: V13 / versionCode 30
+- APK: `v13_instalador_acompanhamento.apk`
 - manifesto consumido pelo app: `atualizacao.json`
 - applicationId protegido: `br.com.oam.fichacampolavra.v1`
 
