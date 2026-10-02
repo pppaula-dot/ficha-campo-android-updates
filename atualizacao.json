@@ -1,7 +1,7 @@
 {
-  "versionCode": 30,
-  "versionName": "13",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v13/v13_instalador_acompanhamento.apk",
-  "sha256": "390319b6b7b9795fb044890b6725e95833dac512954292201329e344682a4891",
-  "notes": "V13 consolidada após testes: preservação dos dados existentes, condicionantes sem checkbox indevido, classificação e situação revisadas, campo de não conformidade condicional, datas em DD/MM/AAAA, ampliação e exclusão confirmada de fotos, rotação e envio da ficha completa."
+  "versionCode": 26,
+  "versionName": "10",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v10/v10_instalador_acompanhamento.apk",
+  "sha256": "1adc36153982134e89522ce6677285f7a34c33894565912c6bae0a10eb3401df",
+  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO."
 }
