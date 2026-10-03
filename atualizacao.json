@@ -1,7 +1,7 @@
 {
-  "versionCode": 26,
-  "versionName": "10",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v10/v10_instalador_acompanhamento.apk",
-  "sha256": "1adc36153982134e89522ce6677285f7a34c33894565912c6bae0a10eb3401df",
-  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO."
+  "versionCode": 41,
+  "versionName": "24",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v24/v24_instalador_acompanhamento.apk",
+  "sha256": "f6b3f0f27cb5542491249ae62963f5117bb0917fa483091d4295ed5510135355",
+  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V24: visual novo, Ditar em todas as caixas, GPS nas coordenadas, fotos e tela ajustadas."
 }
