@@ -1,7 +1,7 @@
 {
-  "versionCode": 41,
-  "versionName": "24",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v24/v24_instalador_acompanhamento.apk",
-  "sha256": "f6b3f0f27cb5542491249ae62963f5117bb0917fa483091d4295ed5510135355",
-  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V24: visual novo, Ditar em todas as caixas, GPS nas coordenadas, fotos e tela ajustadas."
+  "versionCode": 43,
+  "versionName": "25",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v25/v25_instalador_acompanhamento.apk",
+  "sha256": "19c04df7344335c968b5ea23ca5faf48bd26f5a87acb453b239d226b395a7241",
+  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V25: salvamento automático, fotos protegidas, situação da vistoria (em andamento/finalizada), pacote da vistoria em Documentos e botão Compartilhar vistoria."
 }
