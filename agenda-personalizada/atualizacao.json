@@ -1,6 +1,6 @@
 {
-  "version": "8",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v8.zip",
-  "sha256": "8f5632ff12c485b4c4996cb1b1dced723c9729a1032b3454d02ff1c77e6d48bd",
-  "notes": "V8: reduz o aviso de lembrete e corrige conclusões acidentais. O aviso não rouba mais o foco do programa em uso, o botão Concluir não fica selecionado e Enter/Espaço não podem concluir a tarefa."
+  "version": "9",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v9.zip",
+  "sha256": "0e684fa68e033f20e8f602c6c23a7bde5112a200639eaee4973c4f09419b09fb",
+  "notes": "V9: corrige o defeito da v8 que podia impedir os avisos de aparecer. O lembrete volta a ser exibido normalmente, mantendo a proteção contra conclusão acidental por Enter/Espaço e devolvendo o foco ao programa em uso."
 }
