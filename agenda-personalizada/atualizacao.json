@@ -1,6 +1,6 @@
 {
-  "version": "9",
-  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v9.zip",
-  "sha256": "0e684fa68e033f20e8f602c6c23a7bde5112a200639eaee4973c4f09419b09fb",
-  "notes": "V9: corrige o defeito da v8 que podia impedir os avisos de aparecer. O lembrete volta a ser exibido normalmente, mantendo a proteção contra conclusão acidental por Enter/Espaço e devolvendo o foco ao programa em uso."
+  "version": "10",
+  "url": "https://raw.githubusercontent.com/pppaula-dot/ficha-campo-android-updates/main/agenda-personalizada/Agenda_Personalizada_update_v10.zip",
+  "sha256": "cdf9137753d097c78651cb4ba09a7583fc8b3f0f39443262782a9192ec32d1d4",
+  "notes": "V10: corrige a segurança dos botões do aviso. O popup fica menor, não rouba o foco, Concluir não fica selecionado e Enter/Espaço em outro programa não acionam ações. Os botões do aviso funcionam com um clique."
 }
