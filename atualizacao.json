@@ -1,7 +1,7 @@
 {
-  "versionCode": 43,
-  "versionName": "25",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v25/v25_instalador_acompanhamento.apk",
-  "sha256": "19c04df7344335c968b5ea23ca5faf48bd26f5a87acb453b239d226b395a7241",
-  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V25: salvamento automático, fotos protegidas, situação da vistoria (em andamento/finalizada), pacote da vistoria em Documentos e botão Compartilhar vistoria."
+  "versionCode": 44,
+  "versionName": "26",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v26/v26_instalador_acompanhamento.apk",
+  "sha256": "68ef71259705b5def8c32411d0c6930a7f48df7a4c5451f89bfcfeeb76b265d4",
+  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V26: carimbo das fotos opcional (chave geral e escolha das informações), mantendo o salvamento automático da V25."
 }
