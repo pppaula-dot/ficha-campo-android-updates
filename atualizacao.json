@@ -1,7 +1,7 @@
 {
-  "versionCode": 44,
-  "versionName": "26",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v26/v26_instalador_acompanhamento.apk",
-  "sha256": "68ef71259705b5def8c32411d0c6930a7f48df7a4c5451f89bfcfeeb76b265d4",
-  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V26: carimbo das fotos opcional (chave geral e escolha das informações), mantendo o salvamento automático da V25."
+  "versionCode": 46,
+  "versionName": "28",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v28/v28_instalador_acompanhamento.apk",
+  "sha256": "1fa753634abe497578341d0a26e178a78a94409c9e473eb0e08ae7c7be98ff69",
+  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V28: exportar mapa (KMZ) com as coordenadas e as fotos com GPS da ficha, mantendo o carimbo opcional da V26 e o salvamento automático da V25."
 }
