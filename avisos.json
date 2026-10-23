@@ -1,0 +1,47 @@
+{
+  "versao": 2,
+  "atualizado": "2026-10-23",
+  "titulo": "Avisos e boas práticas",
+  "itens": [
+    {
+      "icone": "⚠️",
+      "titulo": "Data da vistoria",
+      "texto": "Defina a data da vistoria logo depois de importar a ficha. A pasta da vistoria é criada com essa data no nome, e isso facilita achar cada vistoria depois."
+    },
+    {
+      "icone": "⚠️",
+      "titulo": "Não renomeie arquivos em uso",
+      "texto": "Não renomeie as pastas e arquivos da vistoria enquanto estiverem sincronizados. Primeiro baixe para o computador, depois renomeie."
+    },
+    {
+      "icone": "💡",
+      "titulo": "Salvamento automático",
+      "texto": "O app salva sozinho ao minimizar ou sair, e recupera fotos e dados se fechar de repente. A situação aparece como \"Em andamento (salvo automaticamente)\" até você finalizar."
+    },
+    {
+      "icone": "💡",
+      "titulo": "Pacote da vistoria",
+      "texto": "Fica em Documentos/Ficha_Campo_Orientacao_Lavra e é atualizado sozinho depois de 2 minutos sem mexer. O botão Compartilhar vistoria envia o pacote por WhatsApp, e-mail ou Drive."
+    },
+    {
+      "icone": "✅",
+      "titulo": "Carimbo nas fotos",
+      "texto": "Na tela de fichas, em Carimbo nas fotos, você liga ou desliga o carimbo e escolhe o que aparece: data e hora, UTM, latitude e longitude, local."
+    },
+    {
+      "icone": "✅",
+      "titulo": "Mapa da vistoria",
+      "texto": "Dá para exportar as coordenadas e as fotos da vistoria em um arquivo de mapa (KMZ), que abre no Google Earth e no Google Maps. O botão Compartilhar vistoria agora leva o mapa junto no pacote."
+    },
+    {
+      "icone": "✅",
+      "titulo": "Logos das empresas",
+      "texto": "A lista de fichas mostra a logo de cada empresa. Se a sua empresa estiver sem logo, avise para ela ser incluída."
+    },
+    {
+      "icone": "💡",
+      "titulo": "Relatório em PDF (em teste)",
+      "texto": "Em Relatórios, o botão Formato do relatório permite escolher PDF em vez de HTML. O visual do PDF ainda está em melhoria; o HTML continua sendo o formato principal."
+    }
+  ]
+}
