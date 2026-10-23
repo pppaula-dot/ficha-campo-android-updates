@@ -1,7 +1,7 @@
 {
-  "versionCode": 46,
-  "versionName": "28",
-  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v28/v28_instalador_acompanhamento.apk",
-  "sha256": "1fa753634abe497578341d0a26e178a78a94409c9e473eb0e08ae7c7be98ff69",
-  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V28: exportar mapa (KMZ) com as coordenadas e as fotos com GPS da ficha, mantendo o carimbo opcional da V26 e o salvamento automático da V25."
+  "versionCode": 49,
+  "versionName": "30",
+  "apkUrl": "https://github.com/pppaula-dot/ficha-campo-android-updates/releases/download/v30/v30_instalador_acompanhamento.apk",
+  "sha256": "2a2c68a4531232244c7644404a79734c5eb14c70c63486f232c8577793baf55b",
+  "notes": "Atualização do Ficha Campo - ACOMPANHAMENTO V30: capa de abertura, botão de avisos e boas práticas, botão Compartilhar vistoria com o mapa (KMZ) junto no pacote, logos das empresas e relatório em PDF opcional (em melhoria). Mantém o carimbo opcional, o salvamento automático e a exportação do mapa."
 }
